@@ -45,7 +45,7 @@ const ENV = process.env.NODE_ENV;
       useFactory: (configService: ConfigService) => ({
         global: true,
         secret: configService.get('SECRET_JWT'),
-        signOptions: { expiresIn: '20m' },
+        signOptions: { expiresIn: '2h' },
       }),
     }),
     UserModule,

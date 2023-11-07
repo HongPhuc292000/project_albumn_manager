@@ -40,3 +40,10 @@ export interface CommonQuery {
   page: number;
   size: number;
 }
+
+export interface JWTPayload {
+  sub: string;
+  username: string;
+  iat: number;
+  exp: number;
+}
