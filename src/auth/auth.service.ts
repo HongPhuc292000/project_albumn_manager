@@ -7,15 +7,17 @@ import { ResponseData } from 'src/types';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VERIFY_CODE } from 'src/utils/constant';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
-  async handleLogin(loginDto: LoginDto): Promise<ResponseData<string>> {
+  async handleLogin(loginDto: LoginDto) {
     const { username, password } = loginDto;
     const user = await this.usersRepository.findOne({
       where: [{ username }, { email: username }],
@@ -29,10 +31,14 @@ export class AuthService {
     }
 
     if (user.password !== password) {
-      throw new HttpException('password is incorrect', HttpStatus.BAD_REQUEST);
+      throw new HttpException('password is incorrect', HttpStatus.UNAUTHORIZED);
     }
 
-    return new ResponseData<string>('ok', HttpStatus.OK, 'login success');
+    const payload = { sub: user.id, username: user.username };
+
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 
   async handleRegister(

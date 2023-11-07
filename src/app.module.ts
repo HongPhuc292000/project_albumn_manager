@@ -12,6 +12,9 @@ import { Albumn } from './albumn/entities/albumn.entity';
 import { CommentModule } from './comment/comment.module';
 import { Comment } from './comment/entities/comment.entity';
 import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guard/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 const ENV = process.env.NODE_ENV;
 
@@ -19,6 +22,7 @@ const ENV = process.env.NODE_ENV;
   imports: [
     ConfigModule.forRoot({
       envFilePath: !ENV ? '.env.dev' : `.env.${ENV}`,
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -35,6 +39,15 @@ const ENV = process.env.NODE_ENV;
         retryAttempts: 1,
       }),
     }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        global: true,
+        secret: configService.get('SECRET_JWT'),
+        signOptions: { expiresIn: '20m' },
+      }),
+    }),
     UserModule,
     PhotoModule,
     AlbumnModule,
@@ -42,6 +55,13 @@ const ENV = process.env.NODE_ENV;
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    ConfigService,
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}
