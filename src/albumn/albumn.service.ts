@@ -1,4 +1,9 @@
-import { HttpCode, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpCode,
+  HttpStatus,
+  Injectable,
+  HttpException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ListResponseData, ResponseData } from 'src/types';
 import { AlbumnQuery } from 'src/types/Albumn';
@@ -40,6 +45,9 @@ export class AlbumnService {
 
   async findOne(id: string) {
     const result = await this.albumnRepository.findOneBy({ id });
+    if (!result) {
+      throw new HttpException('not found', HttpStatus.NOT_FOUND);
+    }
     return new ResponseData(result, HttpStatus.OK, 'ok');
   }
 
