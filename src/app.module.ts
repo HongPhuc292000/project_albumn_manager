@@ -11,6 +11,7 @@ import { AlbumnModule } from './albumn/albumn.module';
 import { Albumn } from './albumn/entities/albumn.entity';
 import { CommentModule } from './comment/comment.module';
 import { Comment } from './comment/entities/comment.entity';
+import { AuthModule } from './auth/auth.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -38,6 +39,7 @@ const ENV = process.env.NODE_ENV;
     PhotoModule,
     AlbumnModule,
     CommentModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,7 +6,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 export class Photo extends CustomBaseEntity {
-  @Column({ length: 255, nullable: false })
+  @Column({ length: 255, nullable: false, unique: true })
   name: string;
 
   @ManyToOne(() => User, (user) => user.photos)

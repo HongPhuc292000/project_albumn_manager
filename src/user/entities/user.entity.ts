@@ -9,14 +9,17 @@ export class User extends CustomBaseEntity {
   @Column({ length: 50, nullable: false })
   name: string;
 
-  @Column({ length: 20, nullable: false })
+  @Column({ length: 20, nullable: false, unique: true })
   username: string;
 
   @Column({ length: 20, nullable: false })
   password: string;
 
-  @Column({ length: 320, nullable: false })
+  @Column({ length: 320, nullable: false, unique: true })
   email: string;
+
+  @Column({ type: 'smallint', default: 0 })
+  isVerified: number;
 
   @OneToMany(() => Photo, (photo) => photo.user)
   photos: Photo[];

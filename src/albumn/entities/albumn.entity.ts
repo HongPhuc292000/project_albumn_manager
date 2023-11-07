@@ -5,7 +5,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 export class Albumn extends CustomBaseEntity {
-  @Column({ length: 50, nullable: false })
+  @Column({ length: 50, nullable: false, unique: true })
   name: string;
 
   @Column({ length: 1000 })
