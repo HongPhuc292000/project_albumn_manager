@@ -10,10 +10,10 @@ export class Photo extends CustomBaseEntity {
   name: string;
 
   @ManyToOne(() => User, (user) => user.photos)
-  user: string;
+  user: User;
 
   @ManyToOne(() => Albumn, (albumn) => albumn.photos)
-  albumn: string;
+  albumn: Albumn;
 
   @OneToMany(() => Comment, (comment) => comment.photo)
   comments: Comment[];

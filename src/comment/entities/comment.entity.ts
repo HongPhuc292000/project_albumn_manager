@@ -9,10 +9,10 @@ export class Comment extends CustomBaseEntity {
   content: string;
 
   @ManyToOne(() => User, (user) => user.comments)
-  user: string;
+  user: User;
 
   @ManyToOne(() => Photo, (photo) => photo.comments)
-  photo: string;
+  photo: Photo;
 
   status: never;
 }
