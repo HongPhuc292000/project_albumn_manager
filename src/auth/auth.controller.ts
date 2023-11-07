@@ -4,16 +4,19 @@ import { RegisterDto } from './dto/register.dto';
 import { ResponseData } from 'src/types';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/login.dto';
+import { Public } from 'src/decorators';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<ResponseData<string>> {
+  async login(@Body() loginDto: LoginDto) {
     return await this.authService.handleLogin(loginDto);
   }
 
+  @Public()
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
@@ -21,6 +24,7 @@ export class AuthController {
     return await this.authService.handleRegister(registerDto);
   }
 
+  @Public()
   @Post('verify-email/:id')
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
