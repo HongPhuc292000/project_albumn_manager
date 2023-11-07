@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Photo } from 'src/photo/entities/photo.entity';
+import { ResponseData } from 'src/types';
+import { User } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
-  create(createCommentDto: CreateCommentDto) {
-    return 'This action adds a new comment';
-  }
+  constructor(
+    @InjectRepository(Comment) private commentRepository: Repository<Comment>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Photo) private photoRepository: Repository<Photo>,
+  ) {}
+  async create(createCommentDto: CreateCommentDto, userId: string) {
+    const { content, photoId } = createCommentDto;
 
-  findAll() {
-    return `This action returns all comment`;
-  }
+    const user = await this.userRepository.findOneBy({ id: userId });
+    const photo = await this.photoRepository.findOneBy({ id: photoId });
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
-  }
+    if (!photo) {
+      throw new HttpException('not found photo', HttpStatus.BAD_REQUEST);
+    }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
+    const newComment = this.commentRepository.create({ content });
+    newComment.user = user;
+    newComment.photo = photo;
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+    const savedComment = await this.commentRepository.save(newComment);
+
+    return new ResponseData(savedComment.id, HttpStatus.CREATED, 'ok');
   }
 }
