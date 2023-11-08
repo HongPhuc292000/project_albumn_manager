@@ -3,11 +3,16 @@ import { RegisterDto } from './dto/register.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
-import { ResponseData } from 'src/types';
+import { JWTPayload, ResponseData } from 'src/types';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VERIFY_CODE } from 'src/utils/constant';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import {
+  ForgotPasswordDto,
+  SetNewPasswordDto,
+} from './dto/forgot-password.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +20,7 @@ export class AuthService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async handleLogin(loginDto: LoginDto) {
@@ -100,5 +106,52 @@ export class AuthService {
     user.isVerified = 1;
     await this.usersRepository.save(user);
     return new ResponseData<string>('ok', HttpStatus.OK, 'verify success');
+  }
+
+  async handleForgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    try {
+      const user = await this.usersRepository.findOneBy({
+        email: forgotPasswordDto.email,
+      });
+
+      if (!user) {
+        throw new HttpException(
+          'email has not been used, create new account',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      }
+
+      const payload = { sub: user.id, username: user.username };
+
+      return await this.jwtService.signAsync(payload);
+    } catch (error) {
+      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async handleSetNewPassword(
+    setNewPasswordDto: SetNewPasswordDto,
+    token: string,
+  ) {
+    try {
+      const payload: JWTPayload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get('SECRET_JWT'),
+      });
+
+      const user = await this.usersRepository.findOneBy({
+        id: payload.sub,
+      });
+
+      if (!user) {
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      }
+
+      user.password = setNewPasswordDto.password;
+      await this.usersRepository.save(user);
+
+      return new ResponseData('password changed', HttpStatus.OK, 'ok');
+    } catch (error) {
+      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
