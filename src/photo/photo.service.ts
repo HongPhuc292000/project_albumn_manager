@@ -45,7 +45,7 @@ export class PhotoService {
   async findOne(id: string) {
     const photo = await this.photoRepository.findOneBy({ id });
 
-    if (!photo) {
+    if (!photo || !photo.status) {
       throw new HttpException('not found photo', HttpStatus.NOT_FOUND);
     }
     return new ResponseData(photo, HttpStatus.OK, 'ok');
@@ -56,7 +56,7 @@ export class PhotoService {
     const photo = await this.photoRepository.findOneBy({ id });
     const albumn = await this.albumnRepository.findOneBy({ id: albumnId });
 
-    if (!photo) {
+    if (!photo || !photo.status) {
       throw new HttpException('not found photo', HttpStatus.NOT_FOUND);
     }
 
@@ -74,7 +74,7 @@ export class PhotoService {
 
   async likePhoto(photoId: string, userId: string) {
     const photo = await this.photoRepository.findOneBy({ id: photoId });
-    if (!photo) {
+    if (!photo || !photo.status) {
       throw new HttpException('not found photo', HttpStatus.NOT_FOUND);
     }
 
@@ -107,7 +107,9 @@ export class PhotoService {
     if (!photo) {
       throw new HttpException('not found photo', HttpStatus.NOT_FOUND);
     }
-    this.photoRepository.remove(photo);
+
+    photo.status = 0;
+    await this.photoRepository.save(photo);
     return new ResponseData('deleted', HttpStatus.OK, 'ok');
   }
 }

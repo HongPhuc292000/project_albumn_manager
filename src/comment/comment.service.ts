@@ -20,7 +20,7 @@ export class CommentService {
     const user = await this.userRepository.findOneBy({ id: userId });
     const photo = await this.photoRepository.findOneBy({ id: photoId });
 
-    if (!photo) {
+    if (!photo || !photo.status) {
       throw new HttpException('not found photo', HttpStatus.BAD_REQUEST);
     }
 
