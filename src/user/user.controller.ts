@@ -38,8 +38,8 @@ export class UserController {
     return this.userService.follow(id, user.sub);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Patch('join-albumn/:id')
+  joinAlbumn(@Param('id', ParseUUIDPipe) id: string, @User() user: JWTPayload) {
+    return this.userService.joinAlbumn(id, user.sub);
   }
 }
