@@ -15,7 +15,7 @@ export class ResponseData<D> {
 export class ListResponseData<T> extends ResponseData<T> {
   page: number;
   size: number;
-  total: number;
+  total?: number;
 
   constructor(
     data: T[],
@@ -23,7 +23,7 @@ export class ListResponseData<T> extends ResponseData<T> {
     message: string,
     page: number,
     size: number,
-    total: number,
+    total?: number,
   ) {
     super(data, statusCode, message);
 
@@ -36,7 +36,7 @@ export class ListResponseData<T> extends ResponseData<T> {
 }
 
 export interface CommonQuery {
-  searchKey: string;
+  searchKey?: string;
   page: number;
   size: number;
 }
