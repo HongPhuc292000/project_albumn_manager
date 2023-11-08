@@ -4,11 +4,13 @@ import { ResponseData } from 'src/types';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Albumn } from 'src/albumn/entities/albumn.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Albumn) private albumnRepository: Repository<Albumn>,
   ) {}
 
   async getProfile(id: string) {
@@ -80,7 +82,30 @@ export class UserService {
     return new ResponseData('success', HttpStatus.OK, 'ok');
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async joinAlbumn(albumnId: string, userId: string) {
+    const albumn = await this.albumnRepository.findOneBy({ id: albumnId });
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: {
+        albumns: true,
+      },
+    });
+
+    if (!albumn) {
+      throw new HttpException('not found albumn', HttpStatus.NOT_FOUND);
+    }
+
+    const isJoined = user.albumns.find((albumn) => albumn.id === albumnId);
+    if (isJoined) {
+      user.albumns = user.albumns.filter((albumn) => albumn.id !== albumnId);
+    } else {
+      user.albumns = [...user.albumns, albumn];
+    }
+
+    await this.userRepository.save(user);
+
+    return new ResponseData('success', HttpStatus.OK, 'ok');
   }
 }

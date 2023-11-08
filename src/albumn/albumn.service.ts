@@ -11,18 +11,32 @@ import { Like, Repository } from 'typeorm';
 import { CreateAlbumnDto } from './dto/create-albumn.dto';
 import { UpdateAlbumnDto } from './dto/update-albumn.dto';
 import { Albumn } from './entities/albumn.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Photo } from 'src/photo/entities/photo.entity';
 
 @Injectable()
 export class AlbumnService {
   constructor(
     @InjectRepository(Albumn) private albumnRepository: Repository<Albumn>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Photo) private photoRepository: Repository<Photo>,
   ) {}
 
   @HttpCode(201)
-  async create(createAlbumnDto: CreateAlbumnDto) {
-    const albumn = this.albumnRepository.create(createAlbumnDto);
-    const result = await this.albumnRepository.save(albumn);
-    return new ResponseData(result.id, HttpStatus.CREATED, 'ok');
+  async create(createAlbumnDto: CreateAlbumnDto, userId: string) {
+    try {
+      const albumn = this.albumnRepository.create(createAlbumnDto);
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: { albumns: true },
+      });
+      const savedAlbumn = await this.albumnRepository.save(albumn);
+      user.albumns = [...user.albumns, savedAlbumn];
+      await this.userRepository.save(user);
+      return new ResponseData(savedAlbumn.id, HttpStatus.CREATED, 'ok');
+    } catch (error) {
+      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async findAll(query: AlbumnQuery) {
@@ -60,7 +74,37 @@ export class AlbumnService {
     return new ResponseData(albumn.id, HttpStatus.OK, 'ok');
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} albumn`;
+  async remove(albumnId: string, userId: string) {
+    const albumn = await this.albumnRepository.findOneBy({ id: albumnId });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: { albumns: true },
+    });
+
+    if (!albumn) {
+      throw new HttpException('not found', HttpStatus.NOT_FOUND);
+    }
+
+    const userHasJoinAlbumn = user.albumns.find(
+      (albumn) => albumn.id === albumnId,
+    );
+    if (!userHasJoinAlbumn) {
+      throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    if (user.albumns.length > 1) {
+      user.albumns = user.albumns.filter((albumn) => albumn.id !== albumnId);
+      await this.userRepository.save(user);
+      return new ResponseData('deleted', HttpStatus.OK, 'ok');
+    } else {
+      await this.photoRepository
+        .createQueryBuilder()
+        .update(Photo)
+        .set({ albumn: null })
+        .where('albumn = :albumnId', { albumnId })
+        .execute();
+      await this.albumnRepository.remove(albumn);
+      return new ResponseData('deleted', HttpStatus.OK, 'ok');
+    }
   }
 }

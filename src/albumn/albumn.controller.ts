@@ -13,14 +13,16 @@ import { AlbumnQuery } from 'src/types/Albumn';
 import { AlbumnService } from './albumn.service';
 import { CreateAlbumnDto } from './dto/create-albumn.dto';
 import { UpdateAlbumnDto } from './dto/update-albumn.dto';
+import { User } from 'src/decorators';
+import { JWTPayload } from 'src/types';
 
 @Controller('albumn')
 export class AlbumnController {
   constructor(private readonly albumnService: AlbumnService) {}
 
   @Post()
-  create(@Body() createAlbumnDto: CreateAlbumnDto) {
-    return this.albumnService.create(createAlbumnDto);
+  create(@Body() createAlbumnDto: CreateAlbumnDto, @User() user: JWTPayload) {
+    return this.albumnService.create(createAlbumnDto, user.sub);
   }
 
   @Get()
@@ -42,7 +44,7 @@ export class AlbumnController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.albumnService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string, @User() user: JWTPayload) {
+    return this.albumnService.remove(id, user.sub);
   }
 }
