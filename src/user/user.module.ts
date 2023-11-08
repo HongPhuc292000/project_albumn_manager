@@ -6,9 +6,10 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Albumn } from 'src/albumn/entities/albumn.entity';
+import { Photo } from 'src/photo/entities/photo.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Albumn])],
+  imports: [TypeOrmModule.forFeature([User, Albumn, Photo])],
   controllers: [UserController],
   providers: [UserService, JwtService, ConfigService],
 })

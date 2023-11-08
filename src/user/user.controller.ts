@@ -1,22 +1,27 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseUUIDPipe,
   Patch,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { SelfGuard } from 'src/auth/guard/self.guard';
 import { User } from 'src/decorators';
-import { JWTPayload } from 'src/types';
+import { CommonQuery, JWTPayload } from 'src/types';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('feed')
+  getNewFeed(@User() user: JWTPayload, @Query() query: CommonQuery) {
+    return this.userService.getNewFeed(user.sub, query);
+  }
 
   @Get(':id')
   @UseGuards(SelfGuard)

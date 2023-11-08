@@ -1,16 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ResponseData } from 'src/types';
-import { Repository } from 'typeorm';
+import { CommonQuery, ListResponseData, ResponseData } from 'src/types';
+import { Like, Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Albumn } from 'src/albumn/entities/albumn.entity';
+import { Photo } from 'src/photo/entities/photo.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Albumn) private albumnRepository: Repository<Albumn>,
+    @InjectRepository(Photo) private photoRepository: Repository<Photo>,
   ) {}
 
   async getProfile(id: string) {
@@ -107,5 +109,28 @@ export class UserService {
     await this.userRepository.save(user);
 
     return new ResponseData('success', HttpStatus.OK, 'ok');
+  }
+
+  async getNewFeed(id: string, query: CommonQuery) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        users: true,
+      },
+    });
+
+    const { page = 1, size = 10 } = query;
+
+    const follwedUsers = user.users.map((user) => user.id);
+
+    const photos = await this.photoRepository
+      .createQueryBuilder('photo')
+      .where('photo.userId IN (:...follwedUsers)', { follwedUsers })
+      .orderBy('photo.createdAt', 'DESC')
+      .skip(size * (page - 1))
+      .take(size)
+      .getMany();
+
+    return new ListResponseData(photos, HttpStatus.OK, 'ok', page, size);
   }
 }
