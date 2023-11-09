@@ -4,4 +4,4 @@ const swaggerConfig = {
   version: '1.0',
 };
 
-export default swaggerConfig;
+export { swaggerConfig };

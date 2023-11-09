@@ -15,7 +15,9 @@ import { CreateAlbumnDto } from './dto/create-albumn.dto';
 import { UpdateAlbumnDto } from './dto/update-albumn.dto';
 import { User } from 'src/decorators';
 import { JWTPayload } from 'src/types';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('albumn')
 @Controller('albumn')
 export class AlbumnController {
   constructor(private readonly albumnService: AlbumnService) {}

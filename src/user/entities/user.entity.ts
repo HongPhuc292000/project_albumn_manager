@@ -27,7 +27,9 @@ export class User extends CustomBaseEntity {
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 
-  @ManyToMany(() => Albumn)
+  @ManyToMany(() => Albumn, {
+    cascade: true,
+  })
   @JoinTable({
     name: 'user_albumn',
     joinColumn: {

@@ -5,6 +5,9 @@ export class VerifyEmailDto {
   @IsEmail()
   email: string;
 
+  /**
+   * @example 111111
+   */
   @IsNotEmpty()
   @IsInt()
   code: number;
