@@ -13,7 +13,9 @@ import { CreatePhotoDto } from './dto/create-photo.dto';
 import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { User } from 'src/decorators';
 import { JWTPayload } from 'src/types';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('photo')
 @Controller('photo')
 export class PhotoController {
   constructor(private readonly photoService: PhotoService) {}
