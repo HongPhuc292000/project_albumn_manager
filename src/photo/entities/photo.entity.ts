@@ -1,6 +1,6 @@
 import { Albumn } from 'src/albumn/entities/albumn.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from 'src/utils/base.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 

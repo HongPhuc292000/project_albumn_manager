@@ -14,6 +14,8 @@ import { Photo } from './photo/entities/photo.entity';
 import { PhotoModule } from './photo/photo.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
+import databaseConfig from './configs/database.config';
+import { TypeOrmConfigProvider } from './providers/typeormConfig.provider';
 
 const ENV = process.env.NODE_ENV;
 
@@ -22,36 +24,17 @@ const ENV = process.env.NODE_ENV;
     ConfigModule.forRoot({
       envFilePath: !ENV ? '.env.dev' : `.env.${ENV}`,
       isGlobal: true,
+      load: [databaseConfig],
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('POSTGRES_HOST'),
-        port: configService.get('POSTGRES_PORT'),
-        username: configService.get('POSTGRES_USER'),
-        password: configService.get('POSTGRES_PASSWORD'),
-        database: configService.get('POSTGRES_DB'),
-        entities: [User, Albumn, Photo, Comment],
-        synchronize: true,
-        retryAttempts: 1,
-      }),
+      useClass: TypeOrmConfigProvider,
     }),
     JwtModule.registerAsync(jwtRegisterConfig),
+    AuthModule,
     UserModule,
     PhotoModule,
     AlbumnModule,
     CommentModule,
-    AuthModule,
-  ],
-  controllers: [],
-  providers: [
-    ConfigService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
   ],
 })
 export class AppModule {}

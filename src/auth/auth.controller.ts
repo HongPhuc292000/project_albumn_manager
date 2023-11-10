@@ -11,7 +11,6 @@ import { RegisterDto } from './dto/register.dto';
 import { ResponseData } from 'src/types';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/login.dto';
-import { Public } from 'src/decorators';
 import {
   ForgotPasswordDto,
   SetNewPasswordDto,
@@ -23,13 +22,11 @@ import { ApiHeader, ApiTags } from '@nestjs/swagger';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.handleLogin(loginDto);
   }
 
-  @Public()
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
@@ -37,7 +34,6 @@ export class AuthController {
     return await this.authService.handleRegister(registerDto);
   }
 
-  @Public()
   @Post('verify-email/:id')
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
@@ -46,13 +42,11 @@ export class AuthController {
     return await this.authService.handleVerifyEmail(id, verifyEmailDto);
   }
 
-  @Public()
   @Post('forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.handleForgotPassword(forgotPasswordDto);
   }
 
-  @Public()
   @Patch('forgot-password/:token')
   setNewPassword(
     @Body() setNewPasswordDto: SetNewPasswordDto,

@@ -1,4 +1,4 @@
-import { CustomBaseEntity } from 'src/common/entities/base.entity';
+import { CustomBaseEntity } from 'src/utils/base.entity';
 import { Photo } from 'src/photo/entities/photo.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
