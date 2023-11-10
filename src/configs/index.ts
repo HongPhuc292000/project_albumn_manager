@@ -1,2 +1,2 @@
-export * from './swaggerConfig';
-export * from './jwtRegisterConfig';
+export * from './swagger.config';
+export * from './jwtRegister.config';

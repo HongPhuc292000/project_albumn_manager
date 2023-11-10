@@ -8,7 +8,6 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { SelfGuard } from 'src/auth/guard/self.guard';
 import { User } from 'src/decorators';
 import { CommonQuery, JWTPayload } from 'src/types';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -26,13 +25,11 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(SelfGuard)
   getProfile(@Param('id', ParseUUIDPipe) id: string) {
     return this.userService.getProfile(id);
   }
 
   @Patch(':id')
-  @UseGuards(SelfGuard)
   updateProfile(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,

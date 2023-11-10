@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export abstract class CustomBaseEntity {
+export class CustomBaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
