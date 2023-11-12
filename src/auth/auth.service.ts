@@ -1,19 +1,27 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { AllTypeConfig } from 'src/configs';
 import { JWTPayload, ResponseData } from 'src/types';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { User } from 'src/user/entities/user.entity';
 import { VERIFY_CODE } from 'src/utils/constant';
-import { LoginDto } from './dto/login.dto';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
 import {
   ForgotPasswordDto,
   SetNewPasswordDto,
 } from './dto/forgot-password.dto';
-import { ConfigService } from '@nestjs/config';
-import { AllTypeConfig } from 'src/configs';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,14 +39,19 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException(
-        'email or username is incorrect',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException({
+        message: 'email or username is incorrect',
+        error: 'Bad Request',
+      });
     }
 
-    if (user.password !== password) {
-      throw new HttpException('password is incorrect', HttpStatus.UNAUTHORIZED);
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw new BadRequestException({
+        message: 'password is incorrect',
+        error: 'Bad Request',
+      });
     }
 
     const payload = { sub: user.id, username: user.username };
@@ -67,19 +80,28 @@ export class AuthService {
     });
 
     if (usedEmail) {
-      throw new HttpException('email is used', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException({
+        message: 'email is used',
+        error: 'Bad Request',
+      });
     }
 
     if (usedUserName) {
-      throw new HttpException('username is used', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException({
+        message: 'username is used',
+        error: 'Bad Request',
+      });
     }
 
-    const newUser = this.usersRepository.create(registerDto);
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash(registerDto.password, salt);
+
+    const newUser = this.usersRepository.create({ ...registerDto, password });
     await this.usersRepository.save(newUser);
     return new ResponseData<string>(
       'ok',
       HttpStatus.CREATED,
-      'register success',
+      'Register Success',
     );
   }
 
@@ -97,15 +119,24 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('not found user', HttpStatus.NOT_FOUND);
+      throw new NotFoundException({
+        message: 'not found this user',
+        error: 'Not Found',
+      });
     }
 
     if (emailUsed && user.id !== emailUsed.id) {
-      throw new HttpException('email used', HttpStatus.CONFLICT);
+      throw new BadRequestException({
+        message: 'email is verified',
+        error: 'Bad Request',
+      });
     }
 
     if (code !== VERIFY_CODE) {
-      throw new HttpException('code is invalid', HttpStatus.NOT_ACCEPTABLE);
+      throw new BadRequestException({
+        message: 'code is invalid',
+        error: 'Bad Request',
+      });
     }
 
     if (user.email !== email) {
@@ -113,53 +144,48 @@ export class AuthService {
     }
     user.isVerified = 1;
     await this.usersRepository.save(user);
-    return new ResponseData<string>('ok', HttpStatus.OK, 'verify success');
+    return new ResponseData<string>('ok', HttpStatus.OK, 'Verify Success');
   }
 
   async handleForgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    try {
-      const user = await this.usersRepository.findOneBy({
-        email: forgotPasswordDto.email,
+    const user = await this.usersRepository.findOneBy({
+      email: forgotPasswordDto.email,
+    });
+
+    if (!user) {
+      throw new BadRequestException({
+        message: 'email has not been used, create new account',
+        error: 'Bad Request',
       });
-
-      if (!user) {
-        throw new HttpException(
-          'email has not been used, create new account',
-          HttpStatus.NOT_ACCEPTABLE,
-        );
-      }
-
-      const payload = { sub: user.id, username: user.username };
-
-      return await this.jwtService.signAsync(payload);
-    } catch (error) {
-      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    const payload = { sub: user.id, username: user.username };
+    return await this.jwtService.signAsync(payload);
   }
 
   async handleSetNewPassword(
     setNewPasswordDto: SetNewPasswordDto,
     token: string,
   ) {
-    try {
-      const payload: JWTPayload = await this.jwtService.verifyAsync(token, {
-        // secret: this.configService.get('SECRET_JWT'),
+    const payload: JWTPayload = await this.jwtService.verifyAsync(token, {
+      secret: this.configService.getOrThrow('jwtRegister', {
+        infer: true,
+      }).secret,
+    });
+
+    const user = await this.usersRepository.findOneBy({
+      id: payload.sub,
+    });
+
+    if (!user) {
+      throw new ForbiddenException({
+        message: 'forbidden',
+        error: 'Forbidden',
       });
-
-      const user = await this.usersRepository.findOneBy({
-        id: payload.sub,
-      });
-
-      if (!user) {
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-      }
-
-      user.password = setNewPasswordDto.password;
-      await this.usersRepository.save(user);
-
-      return new ResponseData('password changed', HttpStatus.OK, 'ok');
-    } catch (error) {
-      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    user.password = setNewPasswordDto.password;
+    await this.usersRepository.save(user);
+
+    return new ResponseData('ok', HttpStatus.OK, 'Password Changed');
   }
 }

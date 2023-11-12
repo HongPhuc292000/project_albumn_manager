@@ -46,7 +46,7 @@ export class AlbumnService extends BaseService<Albumn> {
   async findAllAlbumns(query: AlbumnQuery, userId: string) {
     const { page = 1, size = 10, searchKey = '' } = query;
     const results = this.findAll(
-      `SELECT * FROM albumn INNER JOIN user_albumn ON albumn.id = user_albumn."albumnId" WHERE user_albumn."userId" = '${userId}' AND LOWER(albumn.name) LIKE LOWER('%${searchKey}%') OFFSET ${
+      `SELECT * FROM albumn INNER JOIN user_salbumn ON albumn.id = user_albumn."albumnId" WHERE user_albumn."userId" = '${userId}' AND LOWER(albumn.name) LIKE LOWER('%${searchKey}%') OFFSET ${
         (page - 1) * size
       } ROWS FETCH NEXT ${size} ROWS ONLY`,
       page,
