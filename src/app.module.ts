@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_FILTER } from '@nestjs/core';
 import { AlbumnModule } from './albumn/albumn.module';
 import { AuthModule } from './auth/auth.module';
 import { CommentModule } from './comment/comment.module';
@@ -11,6 +12,7 @@ import { PhotoModule } from './photo/photo.module';
 import JwtConfigService from './services/jwtConfig.service';
 import { TypeOrmConfigService } from './services/typeormConfig.service';
 import { UserModule } from './user/user.module';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 const ENV = process.env.NODE_ENV;
 
@@ -32,6 +34,12 @@ const ENV = process.env.NODE_ENV;
     PhotoModule,
     AlbumnModule,
     CommentModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
   ],
 })
 export class AppModule {}
