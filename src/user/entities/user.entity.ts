@@ -27,9 +27,7 @@ export class User extends CustomBaseEntity {
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 
-  @ManyToMany(() => Albumn, {
-    cascade: true,
-  })
+  @ManyToMany(() => Albumn, (albumn) => albumn.users)
   @JoinTable({
     name: 'user_albumn',
     joinColumn: {
@@ -43,7 +41,7 @@ export class User extends CustomBaseEntity {
   })
   albumns: Albumn[];
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.users)
   @JoinTable({
     name: 'user_user',
     joinColumn: {
@@ -57,7 +55,7 @@ export class User extends CustomBaseEntity {
   })
   users: User[];
 
-  @ManyToMany(() => Photo)
+  @ManyToMany(() => Photo, (photo) => photo.likedUser)
   @JoinTable({
     name: 'user_like_photo',
     joinColumn: {

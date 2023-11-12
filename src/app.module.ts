@@ -1,21 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlbumnModule } from './albumn/albumn.module';
-import { Albumn } from './albumn/entities/albumn.entity';
 import { AuthModule } from './auth/auth.module';
-import { AuthGuard } from './auth/guard/auth.guard';
 import { CommentModule } from './comment/comment.module';
-import { Comment } from './comment/entities/comment.entity';
-import { jwtRegisterConfig } from './configs';
-import { Photo } from './photo/entities/photo.entity';
-import { PhotoModule } from './photo/photo.module';
-import { User } from './user/entities/user.entity';
-import { UserModule } from './user/user.module';
 import databaseConfig from './configs/database.config';
-import { TypeOrmConfigProvider } from './providers/typeormConfig.provider';
+import jwtRegisterConfig from './configs/jwtRegister.config';
+import { PhotoModule } from './photo/photo.module';
+import JwtConfigService from './services/jwtConfig.service';
+import { TypeOrmConfigService } from './services/typeormConfig.service';
+import { UserModule } from './user/user.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -24,12 +19,14 @@ const ENV = process.env.NODE_ENV;
     ConfigModule.forRoot({
       envFilePath: !ENV ? '.env.dev' : `.env.${ENV}`,
       isGlobal: true,
-      load: [databaseConfig],
+      load: [databaseConfig, jwtRegisterConfig],
     }),
     TypeOrmModule.forRootAsync({
-      useClass: TypeOrmConfigProvider,
+      useClass: TypeOrmConfigService,
     }),
-    JwtModule.registerAsync(jwtRegisterConfig),
+    JwtModule.registerAsync({
+      useClass: JwtConfigService,
+    }),
     AuthModule,
     UserModule,
     PhotoModule,
@@ -38,3 +35,13 @@ const ENV = process.env.NODE_ENV;
   ],
 })
 export class AppModule {}
+
+// {
+//   imports: [ConfigModule],
+//   inject: [ConfigService],
+//   useFactory: (configService: ConfigService) => ({
+//     global: true,
+//     secret: configService.get('SECRET_JWT'),
+//     signOptions: { expiresIn: '2h' },
+//   }),
+// }

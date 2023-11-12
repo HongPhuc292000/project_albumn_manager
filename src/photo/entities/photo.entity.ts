@@ -2,7 +2,7 @@ import { Albumn } from 'src/albumn/entities/albumn.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { CustomBaseEntity } from 'src/utils/base.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 export class Photo extends CustomBaseEntity {
@@ -20,4 +20,7 @@ export class Photo extends CustomBaseEntity {
 
   @Column({ length: 1000, nullable: false })
   link: string;
+
+  @ManyToMany(() => User, (user) => user.likedPhotos)
+  likedUser: User[];
 }

@@ -1,6 +1,7 @@
 import { CustomBaseEntity } from 'src/utils/base.entity';
 import { Photo } from 'src/photo/entities/photo.entity';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Albumn extends CustomBaseEntity {
@@ -12,4 +13,7 @@ export class Albumn extends CustomBaseEntity {
 
   @OneToMany(() => Photo, (photo) => photo.albumn)
   photos: Photo[];
+
+  @ManyToMany(() => User, (user) => user.albumns)
+  users: User[];
 }

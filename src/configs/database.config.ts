@@ -11,11 +11,7 @@ export interface DatabaseConfig {
   synchronize?: boolean;
 }
 
-export interface AllTypeConfig {
-  database: DatabaseConfig;
-}
-
-export default registerAs<DatabaseConfig>('database', () => ({
+export default registerAs('database', () => ({
   type: process.env.DB_TYPE,
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10) || 5432,

@@ -7,12 +7,13 @@ import { JWTPayload, ResponseData } from 'src/types';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VERIFY_CODE } from 'src/utils/constant';
 import { LoginDto } from './dto/login.dto';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import {
   ForgotPasswordDto,
   SetNewPasswordDto,
 } from './dto/forgot-password.dto';
 import { ConfigService } from '@nestjs/config';
+import { AllTypeConfig } from 'src/configs';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,7 @@ export class AuthService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService<AllTypeConfig>,
   ) {}
 
   async handleLogin(loginDto: LoginDto) {
@@ -42,8 +43,15 @@ export class AuthService {
 
     const payload = { sub: user.id, username: user.username };
 
+    const jwtRegisterConfig = this.configService.getOrThrow('jwtRegister', {
+      infer: true,
+    });
+
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: jwtRegisterConfig.secret,
+        expiresIn: jwtRegisterConfig.signOptions.expiresIn,
+      }),
     };
   }
 
@@ -135,7 +143,7 @@ export class AuthService {
   ) {
     try {
       const payload: JWTPayload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get('SECRET_JWT'),
+        // secret: this.configService.get('SECRET_JWT'),
       });
 
       const user = await this.usersRepository.findOneBy({

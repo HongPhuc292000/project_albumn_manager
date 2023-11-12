@@ -1,13 +1,7 @@
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { registerAs } from '@nestjs/config';
 
-const jwtRegisterConfig = {
-  imports: [ConfigModule],
-  inject: [ConfigService],
-  useFactory: (configService: ConfigService) => ({
-    global: true,
-    secret: configService.get('SECRET_JWT'),
-    signOptions: { expiresIn: '2h' },
-  }),
-};
-
-export { jwtRegisterConfig };
+export default registerAs('jwtRegister', () => ({
+  global: true,
+  secret: process.env.SECRET_JWT || 'nothing',
+  signOptions: { expiresIn: '2h' },
+}));
