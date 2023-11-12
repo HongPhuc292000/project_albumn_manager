@@ -5,22 +5,25 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ListResponseData, ResponseData } from 'src/types';
+import { JWTPayload, ListResponseData, ResponseData } from 'src/types';
 import { AlbumnQuery } from 'src/types/Albumn';
-import { Like, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { CreateAlbumnDto } from './dto/create-albumn.dto';
 import { UpdateAlbumnDto } from './dto/update-albumn.dto';
 import { Albumn } from './entities/albumn.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Photo } from 'src/photo/entities/photo.entity';
+import { BaseService } from 'src/services/baseCRUD.service';
 
 @Injectable()
-export class AlbumnService {
+export class AlbumnService extends BaseService<Albumn> {
   constructor(
     @InjectRepository(Albumn) private albumnRepository: Repository<Albumn>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Photo) private photoRepository: Repository<Photo>,
-  ) {}
+  ) {
+    super(albumnRepository);
+  }
 
   @HttpCode(201)
   async create(createAlbumnDto: CreateAlbumnDto, userId: string) {
@@ -39,30 +42,16 @@ export class AlbumnService {
     }
   }
 
-  async findAll(query: AlbumnQuery) {
-    const { page = 1, size = 10, searchKey } = query;
-    const albumns = await this.albumnRepository.find({
-      where: { name: Like(`%${searchKey || ''}%`) },
-      skip: size * (page - 1),
-      take: size,
-    });
-    const totalRecord = await this.albumnRepository.count();
-    return new ListResponseData(
-      albumns,
-      HttpStatus.OK,
-      'ok',
+  async findAllAlbumns(query: AlbumnQuery, userId: string) {
+    const { page = 1, size = 10, searchKey = '' } = query;
+    const results = this.findAll(
+      `SELECT * FROM albumn INNER JOIN user_albumn ON albumn.id = user_albumn."albumnId" WHERE user_albumn."userId" = '${userId}' AND LOWER(albumn.name) LIKE LOWER('%${searchKey}%') OFFSET ${
+        (page - 1) * size
+      } ROWS FETCH NEXT ${size} ROWS ONLY`,
       page,
       size,
-      totalRecord,
     );
-  }
-
-  async findOne(id: string) {
-    const result = await this.albumnRepository.findOneBy({ id });
-    if (!result) {
-      throw new HttpException('not found', HttpStatus.NOT_FOUND);
-    }
-    return new ResponseData(result, HttpStatus.OK, 'ok');
+    return results;
   }
 
   async update(id: string, updateAlbumnDto: UpdateAlbumnDto) {

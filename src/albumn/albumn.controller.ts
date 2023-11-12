@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AlbumnQuery } from 'src/types/Albumn';
 import { AlbumnService } from './albumn.service';
@@ -16,9 +17,13 @@ import { UpdateAlbumnDto } from './dto/update-albumn.dto';
 import { User } from 'src/decorators';
 import { JWTPayload } from 'src/types';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
 
-@ApiTags('albumn')
-@Controller('albumn')
+const tag = 'albumn';
+
+@ApiTags(tag)
+@Controller(tag)
+@UseGuards(AuthGuard)
 export class AlbumnController {
   constructor(private readonly albumnService: AlbumnService) {}
 
@@ -28,13 +33,13 @@ export class AlbumnController {
   }
 
   @Get()
-  findAll(@Query() query: AlbumnQuery) {
-    return this.albumnService.findAll(query);
+  findAll(@Query() query: AlbumnQuery, @User() user: JWTPayload) {
+    return this.albumnService.findAllAlbumns(query, user.sub);
   }
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.albumnService.findOne(id);
+    return this.albumnService.findById(id, tag);
   }
 
   @Patch(':id')
