@@ -3,6 +3,7 @@ import {
   HttpStatus,
   Injectable,
   HttpException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JWTPayload, ListResponseData, ResponseData } from 'src/types';
@@ -38,7 +39,7 @@ export class AlbumnService extends BaseService<Albumn> {
       await this.userRepository.save(user);
       return new ResponseData(savedAlbumn.id, HttpStatus.CREATED, 'ok');
     } catch (error) {
-      throw new HttpException('server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new InternalServerErrorException();
     }
   }
 
