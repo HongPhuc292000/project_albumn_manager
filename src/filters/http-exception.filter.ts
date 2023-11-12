@@ -20,9 +20,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let message: string | string[] = 'unknown error';
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      error = exception.message;
       const exceptionBody = exception.getResponse() as HttpExceptionBody;
-      message = exceptionBody.message;
+      error = exceptionBody.error;
+      message = exception.message;
     }
     if (exception instanceof QueryFailedError) {
       message = exception.message;

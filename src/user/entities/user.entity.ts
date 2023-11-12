@@ -12,7 +12,7 @@ export class User extends CustomBaseEntity {
   @Column({ length: 20, nullable: false, unique: true })
   username: string;
 
-  @Column({ length: 20, nullable: false })
+  @Column({ length: 100, nullable: false })
   password: string;
 
   @Column({ length: 320, nullable: false, unique: true })
